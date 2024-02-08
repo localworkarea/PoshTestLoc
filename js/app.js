@@ -4172,6 +4172,139 @@
                 }
             }
         }));
+        function setupGroupAnimation(groupSelector, circleId) {
+            const group = document.querySelector(groupSelector);
+            const animCircle = group.querySelector(`#${circleId}`);
+            function handleMouseEnter(event) {
+                const rect = group.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                animCircle.setAttribute("cx", mouseX);
+                animCircle.setAttribute("cy", mouseY);
+                group.removeEventListener("mouseenter", handleMouseEnter);
+            }
+            function handleMouseLeave(event) {
+                group.addEventListener("mouseenter", handleMouseEnter);
+            }
+            group.addEventListener("mouseenter", handleMouseEnter);
+            group.addEventListener("mouseleave", handleMouseLeave);
+        }
+        setupGroupAnimation(".msg__first-group", "animCircle");
+        setupGroupAnimation(".msg__second-group", "animCircleSec");
+        const buttonForm = document.querySelector(".button-form");
+        const classes = [ "move-up-a", "move-up-b", "move-up-c" ];
+        let currentIndex = 0;
+        let intervalId;
+        let watcherClassAdded = false;
+        let animationInProgress = false;
+        function changeClassForInterval() {
+            if (!animationInProgress) return;
+            buttonForm.classList.remove(classes[currentIndex]);
+            currentIndex = (currentIndex + 1) % classes.length;
+            buttonForm.classList.add(classes[currentIndex]);
+            intervalId = setTimeout(changeClassForInterval, 1500);
+        }
+        function startIntervalForWatcher() {
+            if (!animationInProgress) {
+                animationInProgress = true;
+                changeClassForInterval();
+            }
+        }
+        function stopIntervalForWatcher() {
+            clearTimeout(intervalId);
+            animationInProgress = false;
+        }
+        function handleWatcherClassChange(mutationsList, observer) {
+            for (let mutation of mutationsList) if (mutation.type === "attributes" && mutation.attributeName === "class") if (buttonForm.classList.contains("_watcher-view")) {
+                if (!watcherClassAdded) {
+                    watcherClassAdded = true;
+                    startIntervalForWatcher();
+                }
+            } else if (watcherClassAdded) {
+                watcherClassAdded = false;
+                stopIntervalForWatcher();
+            }
+        }
+        const watcherObserver = new MutationObserver(handleWatcherClassChange);
+        watcherObserver.observe(buttonForm, {
+            attributes: true
+        });
+        buttonForm.addEventListener("mouseenter", stopIntervalForWatcher);
+        buttonForm.addEventListener("mouseleave", startIntervalForWatcher);
+        if (buttonForm.classList.contains("_watcher-view")) {
+            watcherClassAdded = true;
+            startIntervalForWatcher();
+        }
+        const fileInput = document.getElementById("file-upload");
+        const fileNameSpan = document.querySelector(".file-upload__file-name");
+        const fileErrorSpan = document.createElement("span");
+        if (fileInput) {
+            fileErrorSpan.classList.add("file-error");
+            document.querySelector(".file-upload").appendChild(fileErrorSpan);
+            fileInput.addEventListener("change", (function() {
+                if (this.files && this.files.length > 0) {
+                    const fileSizeInMB = this.files[0].size / (1024 * 1024);
+                    if (fileSizeInMB > 10) {
+                        const errorMessage = this.getAttribute("data-fe");
+                        fileInput.classList.add("error");
+                        fileErrorSpan.textContent = errorMessage;
+                        fileNameSpan.textContent = "";
+                    } else {
+                        fileInput.classList.remove("error");
+                        fileErrorSpan.textContent = "";
+                        fileNameSpan.textContent = this.files[0].name;
+                    }
+                } else {
+                    fileErrorSpan.textContent = "";
+                    fileNameSpan.textContent = "";
+                }
+            }));
+        }
+        const inputElements = document.querySelectorAll(".input");
+        if (inputElements) inputElements.forEach((input => {
+            input.addEventListener("input", (function() {
+                if (this.value.trim() !== "") {
+                    this.classList.add("_text-input");
+                    this.parentElement.classList.add("_text-input");
+                } else {
+                    this.classList.remove("_text-input");
+                    this.parentElement.classList.remove("_text-input");
+                }
+            }));
+        }));
+        const buttonFormElement = document.querySelector(".button-form");
+        const closeFromBtn = document.querySelector(".form-footer__close");
+        let formFooter, footerMainBody;
+        function updateFooterHeight() {
+            const formFooterHeight = formFooter.offsetHeight;
+            footerMainBody.style.height = `${formFooterHeight}px`;
+        }
+        if (buttonFormElement && closeFromBtn) {
+            buttonFormElement.addEventListener("click", (function() {
+                formFooter = document.querySelector(".form-footer");
+                footerMainBody = document.querySelector(".footer-main__body");
+                if (formFooter && footerMainBody) {
+                    formFooter.classList.add("form-open");
+                    footerMainBody.classList.add("form-open");
+                    setTimeout((function() {
+                        updateFooterHeight();
+                    }), 400);
+                    window.addEventListener("orientationchange", updateFooterHeight);
+                    window.addEventListener("resize", updateFooterHeight);
+                }
+            }));
+            closeFromBtn.addEventListener("click", (function(event) {
+                if (formFooter && footerMainBody) {
+                    formFooter.classList.remove("form-open");
+                    footerMainBody.classList.remove("form-open");
+                    setTimeout((function() {
+                        footerMainBody.style.height = "initial";
+                    }), 400);
+                    window.removeEventListener("orientationchange", updateFooterHeight);
+                    window.removeEventListener("resize", updateFooterHeight);
+                }
+            }));
+        }
     }));
     window["FLS"] = false;
     isWebp();
