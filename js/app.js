@@ -4045,7 +4045,7 @@
                 video.addEventListener("canplay", (function() {
                     video.play();
                 }));
-                var delay = window.matchMedia("(max-width: 500px)").matches ? 1200 : 1800;
+                var delay = window.matchMedia("(max-width: 500px)").matches ? 100 : 2400;
                 if (!videoLoaded) setTimeout((function() {
                     video.load();
                     source.src = source.getAttribute("data-src");
