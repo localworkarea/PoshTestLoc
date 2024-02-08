@@ -1183,9 +1183,8 @@ body {
   text-transform: uppercase;
 }
 
-#animCircle,
-#animCircleSec {
-  r: 0;
+.anim-circle,
+.anim-circle-sec {
   -webkit-transition: r 0.5s ease;
   transition: r 0.5s ease;
 }
@@ -7019,16 +7018,8 @@ body {
             transition-delay: 0.45s;
   }
 
-  .msg__first-group:hover #animCircle {
-    r: 60;
-  }
-
   .msg__first-group:hover .msg__first-lines {
     fill: #FEFEFE;
-  }
-
-  .msg__second-group:hover #animCircleSec {
-    r: 80;
   }
 
   .msg__second-group:hover .msg__second-point {

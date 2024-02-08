@@ -4172,7 +4172,7 @@
                 }
             }
         }));
-        function setupGroupAnimation(groupSelector, circleId) {
+        function setupGroupAnimation(groupSelector, circleId, hoverRadius) {
             const group = document.querySelector(groupSelector);
             const animCircle = group.querySelector(`#${circleId}`);
             function handleMouseEnter(event) {
@@ -4181,16 +4181,18 @@
                 const mouseY = event.clientY - rect.top;
                 animCircle.setAttribute("cx", mouseX);
                 animCircle.setAttribute("cy", mouseY);
+                animCircle.setAttribute("r", hoverRadius);
                 group.removeEventListener("mouseenter", handleMouseEnter);
             }
             function handleMouseLeave(event) {
                 group.addEventListener("mouseenter", handleMouseEnter);
+                animCircle.setAttribute("r", "0");
             }
             group.addEventListener("mouseenter", handleMouseEnter);
             group.addEventListener("mouseleave", handleMouseLeave);
         }
-        setupGroupAnimation(".msg__first-group", "animCircle");
-        setupGroupAnimation(".msg__second-group", "animCircleSec");
+        setupGroupAnimation(".msg__first-group", "animCircle", "60");
+        setupGroupAnimation(".msg__second-group", "animCircleSec", "80");
         const buttonForm = document.querySelector(".button-form");
         const classes = [ "move-up-a", "move-up-b", "move-up-c" ];
         let currentIndex = 0;
