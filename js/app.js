@@ -4036,17 +4036,19 @@
     }
     const da = new DynamicAdapt("max");
     da.init();
-    if (window.location.pathname === "/index.html" || window.location.pathname === "/") {
-        bodyLockToggle();
-        document.addEventListener("DOMContentLoaded", (function() {
-            setTimeout((function() {
-                window.scrollTo({
-                    top: 0,
-                    behavior: "instant"
-                });
-            }), 300);
-        }));
-    }
+if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/') {
+    bodyLockToggle();
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'instant' 
+        });
+      }, 300);
+    });
+  }
+  
     let startY = null;
     function handleTouchStart(event) {
         const touch = event.touches[0];
