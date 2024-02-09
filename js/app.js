@@ -4036,9 +4036,9 @@
     }
     const da = new DynamicAdapt("max");
     da.init();
-if (window.location.pathname.endsWith('https://localworkarea.github.io/PoshTestLoc/index.html') || window.location.pathname === 'https://localworkarea.github.io/PoshTestLoc/') {
-    bodyLockToggle();
-    
+    if (window.location.pathname === '/index.html' || window.location.pathname === '/') { {
+        bodyLockToggle();
+    }
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(function() {
         window.scrollTo({
@@ -4047,7 +4047,6 @@ if (window.location.pathname.endsWith('https://localworkarea.github.io/PoshTestL
         });
       }, 300);
     });
-  }
   
     let startY = null;
     function handleTouchStart(event) {
