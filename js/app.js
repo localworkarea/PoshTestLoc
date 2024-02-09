@@ -4036,6 +4036,53 @@
     }
     const da = new DynamicAdapt("max");
     da.init();
+    if (window.location.pathname === "/index.html" || window.location.pathname === "/") {
+        bodyLockToggle();
+        document.addEventListener("DOMContentLoaded", (function() {
+            setTimeout((function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "instant"
+                });
+            }), 300);
+        }));
+    }
+    let startY = null;
+    function handleTouchStart(event) {
+        const touch = event.touches[0];
+        startY = touch.clientY;
+    }
+    function handleTouchMove(event) {
+        if (!startY) return;
+        const touch = event.touches[0];
+        const deltaY = touch.clientY - startY;
+        const direction = chooseDirection(deltaY);
+        if (direction === -1) checkContentHeight();
+        startY = null;
+    }
+    function handleWheel(event) {
+        const deltaY = event.deltaY;
+        const direction = chooseDirection(deltaY);
+        console.log("Direction:", direction);
+        if (direction === 1) checkContentHeight();
+    }
+    function scrollDown() {
+        document.documentElement.classList.add("section-01");
+        setTimeout(bodyUnlock, 500);
+    }
+    function checkContentHeight() {
+        const heroSection = document.querySelector(".hero");
+        const contentHeight = heroSection.scrollHeight;
+        const sectionHeight = heroSection.clientHeight;
+        if (contentHeight <= sectionHeight) scrollDown(); else if (heroSection.scrollTop + sectionHeight >= heroSection.scrollHeight) scrollDown();
+    }
+    function chooseDirection(deltaY) {
+        return deltaY > 0 ? 1 : -1;
+    }
+    const targetElement = document.querySelector(".hero");
+    targetElement.addEventListener("wheel", handleWheel);
+    targetElement.addEventListener("touchstart", handleTouchStart);
+    targetElement.addEventListener("touchmove", handleTouchMove);
     document.addEventListener("DOMContentLoaded", (function() {
         window.addEventListener("load", (function() {
             var video = document.getElementById("heroVideo");
@@ -4144,34 +4191,6 @@
             heroBody.addEventListener("mouseout", removeHoverClass);
             heroControlButton.addEventListener("mouseout", removeHoverClass);
         }
-        const tikers = document.querySelectorAll(".tiker");
-        tikers.forEach((tiker => {
-            const originalLine = tiker.querySelector(".tiker__line");
-            if (originalLine) {
-                const clonedLine = originalLine.cloneNode(true);
-                clonedLine.classList.add("clone-line");
-                tiker.appendChild(clonedLine);
-                const animationProperties = getComputedStyle(originalLine).animation;
-                clonedLine.style.animation = "none";
-                setTimeout((() => {
-                    clonedLine.style.animation = animationProperties;
-                }), 0);
-                if (tiker.classList.contains("tiker-hover") && !document.documentElement.classList.contains("touch")) {
-                    tiker.addEventListener("mouseover", (() => {
-                        const cloneLines = tiker.querySelectorAll(".clone-line");
-                        cloneLines.forEach((cloneLine => {
-                            cloneLine.style.animationPlayState = "paused";
-                        }));
-                    }));
-                    tiker.addEventListener("mouseout", (() => {
-                        const cloneLines = tiker.querySelectorAll(".clone-line");
-                        cloneLines.forEach((cloneLine => {
-                            cloneLine.style.animationPlayState = "running";
-                        }));
-                    }));
-                }
-            }
-        }));
         function setupGroupAnimation(groupSelector, circleId, hoverRadius) {
             const group = document.querySelector(groupSelector);
             const animCircle = group.querySelector(`#${circleId}`);
@@ -4306,6 +4325,29 @@
                     window.removeEventListener("resize", updateFooterHeight);
                 }
             }));
+        }
+    }));
+    const tikers = document.querySelectorAll(".tiker");
+    tikers.forEach((tiker => {
+        const originalLine = tiker.querySelector(".tiker__line");
+        if (originalLine) {
+            const clonedLine = originalLine.cloneNode(true);
+            clonedLine.classList.add("clone-line");
+            tiker.appendChild(clonedLine);
+            if (tiker.classList.contains("tiker-hover") && !document.documentElement.classList.contains("touch")) {
+                tiker.addEventListener("mouseover", (() => {
+                    const cloneLines = tiker.querySelectorAll(".clone-line");
+                    cloneLines.forEach((cloneLine => {
+                        cloneLine.style.animationPlayState = "paused";
+                    }));
+                }));
+                tiker.addEventListener("mouseout", (() => {
+                    const cloneLines = tiker.querySelectorAll(".clone-line");
+                    cloneLines.forEach((cloneLine => {
+                        cloneLine.style.animationPlayState = "running";
+                    }));
+                }));
+            }
         }
     }));
     window["FLS"] = false;

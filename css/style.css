@@ -116,6 +116,7 @@ h6 {
 }
 
 body {
+  min-height: 100%;
   -webkit-transition: opacity 0.3s;
   transition: opacity 0.3s;
 }
@@ -759,8 +760,8 @@ body {
 }
 
 .tiker-01 .tiker__line {
-  -webkit-animation: scroll 20s linear infinite;
-          animation: scroll 20s linear infinite;
+  -webkit-animation: scroll 40s linear infinite;
+          animation: scroll 40s linear infinite;
 }
 
 .tiker-insights .tiker__line {
@@ -1562,14 +1563,37 @@ body {
 }
 
 .hero {
-  overflow: hidden;
+  position: fixed;
+  z-index: 8;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  overflow: auto;
+  visibility: visible;
   min-height: 100vh;
   min-height: 100svh;
-  position: relative;
+  background-color: #1A1F35;
+  -webkit-transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease;
+}
+
+.section-01 .hero {
+  opacity: 0;
+  pointer-events: none;
+  -webkit-transition-delay: 0.3s;
+          transition-delay: 0.3s;
+}
+
+.hero__wrapper {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  background-color: #1A1F35;
+  min-height: 100vh;
+  min-height: 100svh;
+  width: 100%;
+  position: relative;
 }
 
 .hero__bg {
@@ -1592,9 +1616,6 @@ body {
 }
 
 .hero__container {
-  width: 100%;
-  position: relative;
-  z-index: 2;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -2162,6 +2183,8 @@ body {
 
   .header._header-scroll {
     min-height: 4.375rem;
+    -webkit-transition-delay: 0.5s;
+            transition-delay: 0.5s;
   }
 
   .footer-main__title br {
@@ -2275,9 +2298,29 @@ body {
     font-weight: 600;
   }
 
-  .hero__container {
+  .circle-hero-b {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .circle-hero-b__container {
+    position: relative;
+    height: 100%;
+  }
+
+  .hero__wrapper {
     padding-top: 6.25rem;
+  }
+
+  .hero__container {
+    -webkit-box-flex: 1;
+        -ms-flex: 1 1 auto;
+            flex: 1 1 auto;
+    width: 100%;
     row-gap: 2.5rem;
+    position: relative;
+    z-index: 2;
   }
 
   .hero__title {
@@ -2890,6 +2933,8 @@ body {
 
   ._header-scroll .header_logo img {
     width: 8.875rem;
+    -webkit-transition-delay: 0.5s;
+            transition-delay: 0.5s;
   }
 
   .menu__link {
@@ -3347,7 +3392,7 @@ body {
     right: 11.25rem;
   }
 
-  .hero__container {
+  .hero__wrapper {
     padding-bottom: 5rem;
   }
 
@@ -4509,7 +4554,18 @@ body {
             order: 1;
   }
 
-  .hero {
+  .circle-hero-b {
+    display: none;
+  }
+
+  .hero__wrapper {
+    padding-bottom: 1.875rem;
+  }
+
+  .hero__wrapper {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
     -webkit-box-orient: vertical;
     -webkit-box-direction: normal;
         -ms-flex-direction: column;
@@ -4527,10 +4583,6 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-  }
-
-  .hero__container {
-    padding-bottom: 1.875rem;
   }
 
   .hero__container {
@@ -4761,13 +4813,13 @@ body {
 }
 
 @supports (padding-bottom: clamp( 3.125rem , -1.5097103179rem  +  5.4247585982vw , 5rem )) {
-    .hero__container {
+    .hero__wrapper {
       padding-bottom: clamp( 3.125rem , -1.5097103179rem  +  5.4247585982vw , 5rem );
     }
 }
 
 @supports not (padding-bottom: clamp( 3.125rem , -1.5097103179rem  +  5.4247585982vw , 5rem )) {
-    .hero__container {
+    .hero__wrapper {
       padding-bottom: calc(3.125rem + 1.875 * (100vw - 85.43625rem) / 34.56375);
     }
 }
@@ -6086,6 +6138,8 @@ body {
 
   ._header-scroll .header_logo img {
     width: 8.75rem;
+    -webkit-transition-delay: 0.5s;
+            transition-delay: 0.5s;
   }
 }
 
@@ -6464,13 +6518,13 @@ body {
 
 @media (min-width: 30.06125em) and (max-width: 85.43625em) {
 @supports (padding-bottom: clamp( 1.875rem , 1.1964164786rem  +  2.2573363431vw , 3.125rem )) {
-    .hero__container {
+    .hero__wrapper {
       padding-bottom: clamp( 1.875rem , 1.1964164786rem  +  2.2573363431vw , 3.125rem );
     }
 }
 
 @supports not (padding-bottom: clamp( 1.875rem , 1.1964164786rem  +  2.2573363431vw , 3.125rem )) {
-    .hero__container {
+    .hero__wrapper {
       padding-bottom: calc(1.875rem + 1.25 * (100vw - 30.06125rem) / 55.375);
     }
 }
