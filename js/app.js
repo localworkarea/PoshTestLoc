@@ -4036,7 +4036,7 @@
     }
     const da = new DynamicAdapt("max");
     da.init();
-if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/') {
+if (window.location.pathname.endsWith('https://localworkarea.github.io/PoshTestLoc/index.html') || window.location.pathname === 'https://localworkarea.github.io/PoshTestLoc/') {
     bodyLockToggle();
     
     document.addEventListener('DOMContentLoaded', function() {
