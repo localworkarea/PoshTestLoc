@@ -876,8 +876,13 @@ body {
   -webkit-box-align: end;
       -ms-flex-align: end;
           align-items: flex-end;
-  -webkit-transition: min-height 0.5s, background-color 0.5s;
-  transition: min-height 0.5s, background-color 0.5s;
+  -webkit-transition: min-height 0.5s, background-color 0.5s, opacity 0.3s;
+  transition: min-height 0.5s, background-color 0.5s, opacity 0.3s;
+  opacity: 0;
+}
+
+.loaded .header {
+  opacity: 1;
 }
 
 .header._header-scroll,
@@ -1558,10 +1563,28 @@ body {
   visibility: unset !important;
 }
 
+.section-02 .about-main {
+  opacity: 0;
+  -webkit-transition: opacity 0.3s 0.3s;
+  transition: opacity 0.3s 0.3s;
+}
+
+.loaded .section-02 .about-main {
+  opacity: 1;
+}
+
 .hero {
+  opacity: 0;
+  -webkit-transition: opacity 0.3s;
+  transition: opacity 0.3s;
+  position: relative;
   min-height: 100vh;
   min-height: 100svh;
   background-color: #1A1F35;
+}
+
+.loaded .hero {
+  opacity: 1;
 }
 
 .hero__wrapper {
