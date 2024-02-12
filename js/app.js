@@ -4610,6 +4610,16 @@
         da.init();
         document.addEventListener("DOMContentLoaded", (function() {
             var video = document.getElementById("heroVideo");
+            var deferredSource = document.getElementById("deferredSource");
+            var videoLoaded = localStorage.getItem("videoLoaded");
+            if (videoLoaded) deferredSource.src = deferredSource.dataset.src; else {
+                deferredSource.onload = function() {
+                    video.appendChild(deferredSource.cloneNode(true));
+                    localStorage.setItem("videoLoaded", true);
+                };
+                deferredSource.src = deferredSource.dataset.src;
+            }
+            video = document.getElementById("heroVideo");
             var playPauseButton = document.querySelector(".hero__control");
             if (playPauseButton) playPauseButton.addEventListener("click", (function() {
                 if (video.paused) {
