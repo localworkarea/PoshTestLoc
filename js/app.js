@@ -731,11 +731,11 @@
                     form.classList.remove("_form-sent");
                 }), 5e3);
                 const fileInput = form.querySelector(".file-upload__input");
-                const fileNameSpan = form.querySelector(".file-upload__file-name");
                 const fileErrorSpan = form.querySelector(".file-error");
+                const fileInputBody = document.querySelector(".file-upload");
                 fileInput.value = "";
-                fileNameSpan.textContent = "";
-                fileErrorSpan.textContent = "";
+                fileInputBody.classList.remove("_upload");
+                if (fileErrorSpan) fileErrorSpan.textContent = "";
                 formValidate.formClean(form);
             }
         }
@@ -3674,168 +3674,254 @@
             }));
         }));
         Swiper.use([ Resize, Observer ]);
-        function create_element_if_not_defined_createElementIfNotDefined(swiper, originalParams, params, checkProps) {
-            if (swiper.params.createElements) Object.keys(checkProps).forEach((key => {
-                if (!params[key] && params.auto === true) {
-                    let element = utils_elementChildren(swiper.el, `.${checkProps[key]}`)[0];
-                    if (!element) {
-                        element = utils_createElement("div", checkProps[key]);
-                        element.className = checkProps[key];
-                        swiper.el.append(element);
-                    }
-                    params[key] = element;
-                    originalParams[key] = element;
-                }
-            }));
-            return params;
-        }
-        function Navigation(_ref) {
-            let {swiper, extendParams, on, emit} = _ref;
+        function Autoplay(_ref) {
+            let {swiper, extendParams, on, emit, params} = _ref;
+            swiper.autoplay = {
+                running: false,
+                paused: false,
+                timeLeft: 0
+            };
             extendParams({
-                navigation: {
-                    nextEl: null,
-                    prevEl: null,
-                    hideOnClick: false,
-                    disabledClass: "swiper-button-disabled",
-                    hiddenClass: "swiper-button-hidden",
-                    lockClass: "swiper-button-lock",
-                    navigationDisabledClass: "swiper-navigation-disabled"
+                autoplay: {
+                    enabled: false,
+                    delay: 3e3,
+                    waitForTransition: true,
+                    disableOnInteraction: false,
+                    stopOnLastSlide: false,
+                    reverseDirection: false,
+                    pauseOnMouseEnter: false
                 }
             });
-            swiper.navigation = {
-                nextEl: null,
-                prevEl: null
-            };
-            const makeElementsArray = el => (Array.isArray(el) ? el : [ el ]).filter((e => !!e));
-            function getEl(el) {
-                let res;
-                if (el && typeof el === "string" && swiper.isElement) {
-                    res = swiper.el.querySelector(el);
-                    if (res) return res;
-                }
-                if (el) {
-                    if (typeof el === "string") res = [ ...document.querySelectorAll(el) ];
-                    if (swiper.params.uniqueNavElements && typeof el === "string" && res.length > 1 && swiper.el.querySelectorAll(el).length === 1) res = swiper.el.querySelector(el);
-                }
-                if (el && !res) return el;
-                return res;
+            let timeout;
+            let raf;
+            let autoplayDelayTotal = params && params.autoplay ? params.autoplay.delay : 3e3;
+            let autoplayDelayCurrent = params && params.autoplay ? params.autoplay.delay : 3e3;
+            let autoplayTimeLeft;
+            let autoplayStartTime = (new Date).getTime();
+            let wasPaused;
+            let isTouched;
+            let pausedByTouch;
+            let touchStartTimeout;
+            let slideChanged;
+            let pausedByInteraction;
+            let pausedByPointerEnter;
+            function onTransitionEnd(e) {
+                if (!swiper || swiper.destroyed || !swiper.wrapperEl) return;
+                if (e.target !== swiper.wrapperEl) return;
+                swiper.wrapperEl.removeEventListener("transitionend", onTransitionEnd);
+                if (pausedByPointerEnter) return;
+                resume();
             }
-            function toggleEl(el, disabled) {
-                const params = swiper.params.navigation;
-                el = makeElementsArray(el);
-                el.forEach((subEl => {
-                    if (subEl) {
-                        subEl.classList[disabled ? "add" : "remove"](...params.disabledClass.split(" "));
-                        if (subEl.tagName === "BUTTON") subEl.disabled = disabled;
-                        if (swiper.params.watchOverflow && swiper.enabled) subEl.classList[swiper.isLocked ? "add" : "remove"](params.lockClass);
-                    }
+            const calcTimeLeft = () => {
+                if (swiper.destroyed || !swiper.autoplay.running) return;
+                if (swiper.autoplay.paused) wasPaused = true; else if (wasPaused) {
+                    autoplayDelayCurrent = autoplayTimeLeft;
+                    wasPaused = false;
+                }
+                const timeLeft = swiper.autoplay.paused ? autoplayTimeLeft : autoplayStartTime + autoplayDelayCurrent - (new Date).getTime();
+                swiper.autoplay.timeLeft = timeLeft;
+                emit("autoplayTimeLeft", timeLeft, timeLeft / autoplayDelayTotal);
+                raf = requestAnimationFrame((() => {
+                    calcTimeLeft();
                 }));
-            }
-            function update() {
-                const {nextEl, prevEl} = swiper.navigation;
-                if (swiper.params.loop) {
-                    toggleEl(prevEl, false);
-                    toggleEl(nextEl, false);
+            };
+            const getSlideDelay = () => {
+                let activeSlideEl;
+                if (swiper.virtual && swiper.params.virtual.enabled) activeSlideEl = swiper.slides.filter((slideEl => slideEl.classList.contains("swiper-slide-active")))[0]; else activeSlideEl = swiper.slides[swiper.activeIndex];
+                if (!activeSlideEl) return;
+                const currentSlideDelay = parseInt(activeSlideEl.getAttribute("data-swiper-autoplay"), 10);
+                return currentSlideDelay;
+            };
+            const run = delayForce => {
+                if (swiper.destroyed || !swiper.autoplay.running) return;
+                cancelAnimationFrame(raf);
+                calcTimeLeft();
+                let delay = typeof delayForce === "undefined" ? swiper.params.autoplay.delay : delayForce;
+                autoplayDelayTotal = swiper.params.autoplay.delay;
+                autoplayDelayCurrent = swiper.params.autoplay.delay;
+                const currentSlideDelay = getSlideDelay();
+                if (!Number.isNaN(currentSlideDelay) && currentSlideDelay > 0 && typeof delayForce === "undefined") {
+                    delay = currentSlideDelay;
+                    autoplayDelayTotal = currentSlideDelay;
+                    autoplayDelayCurrent = currentSlideDelay;
+                }
+                autoplayTimeLeft = delay;
+                const speed = swiper.params.speed;
+                const proceed = () => {
+                    if (!swiper || swiper.destroyed) return;
+                    if (swiper.params.autoplay.reverseDirection) {
+                        if (!swiper.isBeginning || swiper.params.loop || swiper.params.rewind) {
+                            swiper.slidePrev(speed, true, true);
+                            emit("autoplay");
+                        } else if (!swiper.params.autoplay.stopOnLastSlide) {
+                            swiper.slideTo(swiper.slides.length - 1, speed, true, true);
+                            emit("autoplay");
+                        }
+                    } else if (!swiper.isEnd || swiper.params.loop || swiper.params.rewind) {
+                        swiper.slideNext(speed, true, true);
+                        emit("autoplay");
+                    } else if (!swiper.params.autoplay.stopOnLastSlide) {
+                        swiper.slideTo(0, speed, true, true);
+                        emit("autoplay");
+                    }
+                    if (swiper.params.cssMode) {
+                        autoplayStartTime = (new Date).getTime();
+                        requestAnimationFrame((() => {
+                            run();
+                        }));
+                    }
+                };
+                if (delay > 0) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout((() => {
+                        proceed();
+                    }), delay);
+                } else requestAnimationFrame((() => {
+                    proceed();
+                }));
+                return delay;
+            };
+            const start = () => {
+                autoplayStartTime = (new Date).getTime();
+                swiper.autoplay.running = true;
+                run();
+                emit("autoplayStart");
+            };
+            const stop = () => {
+                swiper.autoplay.running = false;
+                clearTimeout(timeout);
+                cancelAnimationFrame(raf);
+                emit("autoplayStop");
+            };
+            const pause = (internal, reset) => {
+                if (swiper.destroyed || !swiper.autoplay.running) return;
+                clearTimeout(timeout);
+                if (!internal) pausedByInteraction = true;
+                const proceed = () => {
+                    emit("autoplayPause");
+                    if (swiper.params.autoplay.waitForTransition) swiper.wrapperEl.addEventListener("transitionend", onTransitionEnd); else resume();
+                };
+                swiper.autoplay.paused = true;
+                if (reset) {
+                    if (slideChanged) autoplayTimeLeft = swiper.params.autoplay.delay;
+                    slideChanged = false;
+                    proceed();
                     return;
                 }
-                toggleEl(prevEl, swiper.isBeginning && !swiper.params.rewind);
-                toggleEl(nextEl, swiper.isEnd && !swiper.params.rewind);
-            }
-            function onPrevClick(e) {
-                e.preventDefault();
-                if (swiper.isBeginning && !swiper.params.loop && !swiper.params.rewind) return;
-                swiper.slidePrev();
-                emit("navigationPrev");
-            }
-            function onNextClick(e) {
-                e.preventDefault();
-                if (swiper.isEnd && !swiper.params.loop && !swiper.params.rewind) return;
-                swiper.slideNext();
-                emit("navigationNext");
-            }
-            function init() {
-                const params = swiper.params.navigation;
-                swiper.params.navigation = create_element_if_not_defined_createElementIfNotDefined(swiper, swiper.originalParams.navigation, swiper.params.navigation, {
-                    nextEl: "swiper-button-next",
-                    prevEl: "swiper-button-prev"
-                });
-                if (!(params.nextEl || params.prevEl)) return;
-                let nextEl = getEl(params.nextEl);
-                let prevEl = getEl(params.prevEl);
-                Object.assign(swiper.navigation, {
-                    nextEl,
-                    prevEl
-                });
-                nextEl = makeElementsArray(nextEl);
-                prevEl = makeElementsArray(prevEl);
-                const initButton = (el, dir) => {
-                    if (el) el.addEventListener("click", dir === "next" ? onNextClick : onPrevClick);
-                    if (!swiper.enabled && el) el.classList.add(...params.lockClass.split(" "));
-                };
-                nextEl.forEach((el => initButton(el, "next")));
-                prevEl.forEach((el => initButton(el, "prev")));
-            }
-            function destroy() {
-                let {nextEl, prevEl} = swiper.navigation;
-                nextEl = makeElementsArray(nextEl);
-                prevEl = makeElementsArray(prevEl);
-                const destroyButton = (el, dir) => {
-                    el.removeEventListener("click", dir === "next" ? onNextClick : onPrevClick);
-                    el.classList.remove(...swiper.params.navigation.disabledClass.split(" "));
-                };
-                nextEl.forEach((el => destroyButton(el, "next")));
-                prevEl.forEach((el => destroyButton(el, "prev")));
-            }
-            on("init", (() => {
-                if (swiper.params.navigation.enabled === false) disable(); else {
-                    init();
-                    update();
+                const delay = autoplayTimeLeft || swiper.params.autoplay.delay;
+                autoplayTimeLeft = delay - ((new Date).getTime() - autoplayStartTime);
+                if (swiper.isEnd && autoplayTimeLeft < 0 && !swiper.params.loop) return;
+                if (autoplayTimeLeft < 0) autoplayTimeLeft = 0;
+                proceed();
+            };
+            const resume = () => {
+                if (swiper.isEnd && autoplayTimeLeft < 0 && !swiper.params.loop || swiper.destroyed || !swiper.autoplay.running) return;
+                autoplayStartTime = (new Date).getTime();
+                if (pausedByInteraction) {
+                    pausedByInteraction = false;
+                    run(autoplayTimeLeft);
+                } else run();
+                swiper.autoplay.paused = false;
+                emit("autoplayResume");
+            };
+            const onVisibilityChange = () => {
+                if (swiper.destroyed || !swiper.autoplay.running) return;
+                const document = ssr_window_esm_getDocument();
+                if (document.visibilityState === "hidden") {
+                    pausedByInteraction = true;
+                    pause(true);
                 }
-            }));
-            on("toEdge fromEdge lock unlock", (() => {
-                update();
+                if (document.visibilityState === "visible") resume();
+            };
+            const onPointerEnter = e => {
+                if (e.pointerType !== "mouse") return;
+                pausedByInteraction = true;
+                pausedByPointerEnter = true;
+                if (swiper.animating || swiper.autoplay.paused) return;
+                pause(true);
+            };
+            const onPointerLeave = e => {
+                if (e.pointerType !== "mouse") return;
+                pausedByPointerEnter = false;
+                if (swiper.autoplay.paused) resume();
+            };
+            const attachMouseEvents = () => {
+                if (swiper.params.autoplay.pauseOnMouseEnter) {
+                    swiper.el.addEventListener("pointerenter", onPointerEnter);
+                    swiper.el.addEventListener("pointerleave", onPointerLeave);
+                }
+            };
+            const detachMouseEvents = () => {
+                swiper.el.removeEventListener("pointerenter", onPointerEnter);
+                swiper.el.removeEventListener("pointerleave", onPointerLeave);
+            };
+            const attachDocumentEvents = () => {
+                const document = ssr_window_esm_getDocument();
+                document.addEventListener("visibilitychange", onVisibilityChange);
+            };
+            const detachDocumentEvents = () => {
+                const document = ssr_window_esm_getDocument();
+                document.removeEventListener("visibilitychange", onVisibilityChange);
+            };
+            on("init", (() => {
+                if (swiper.params.autoplay.enabled) {
+                    attachMouseEvents();
+                    attachDocumentEvents();
+                    start();
+                }
             }));
             on("destroy", (() => {
-                destroy();
+                detachMouseEvents();
+                detachDocumentEvents();
+                if (swiper.autoplay.running) stop();
             }));
-            on("enable disable", (() => {
-                let {nextEl, prevEl} = swiper.navigation;
-                nextEl = makeElementsArray(nextEl);
-                prevEl = makeElementsArray(prevEl);
-                if (swiper.enabled) {
-                    update();
+            on("_freeModeStaticRelease", (() => {
+                if (pausedByTouch || pausedByInteraction) resume();
+            }));
+            on("_freeModeNoMomentumRelease", (() => {
+                if (!swiper.params.autoplay.disableOnInteraction) pause(true, true); else stop();
+            }));
+            on("beforeTransitionStart", ((_s, speed, internal) => {
+                if (swiper.destroyed || !swiper.autoplay.running) return;
+                if (internal || !swiper.params.autoplay.disableOnInteraction) pause(true, true); else stop();
+            }));
+            on("sliderFirstMove", (() => {
+                if (swiper.destroyed || !swiper.autoplay.running) return;
+                if (swiper.params.autoplay.disableOnInteraction) {
+                    stop();
                     return;
                 }
-                [ ...nextEl, ...prevEl ].filter((el => !!el)).forEach((el => el.classList.add(swiper.params.navigation.lockClass)));
+                isTouched = true;
+                pausedByTouch = false;
+                pausedByInteraction = false;
+                touchStartTimeout = setTimeout((() => {
+                    pausedByInteraction = true;
+                    pausedByTouch = true;
+                    pause(true);
+                }), 200);
             }));
-            on("click", ((_s, e) => {
-                let {nextEl, prevEl} = swiper.navigation;
-                nextEl = makeElementsArray(nextEl);
-                prevEl = makeElementsArray(prevEl);
-                const targetEl = e.target;
-                if (swiper.params.navigation.hideOnClick && !prevEl.includes(targetEl) && !nextEl.includes(targetEl)) {
-                    if (swiper.pagination && swiper.params.pagination && swiper.params.pagination.clickable && (swiper.pagination.el === targetEl || swiper.pagination.el.contains(targetEl))) return;
-                    let isHidden;
-                    if (nextEl.length) isHidden = nextEl[0].classList.contains(swiper.params.navigation.hiddenClass); else if (prevEl.length) isHidden = prevEl[0].classList.contains(swiper.params.navigation.hiddenClass);
-                    if (isHidden === true) emit("navigationShow"); else emit("navigationHide");
-                    [ ...nextEl, ...prevEl ].filter((el => !!el)).forEach((el => el.classList.toggle(swiper.params.navigation.hiddenClass)));
+            on("touchEnd", (() => {
+                if (swiper.destroyed || !swiper.autoplay.running || !isTouched) return;
+                clearTimeout(touchStartTimeout);
+                clearTimeout(timeout);
+                if (swiper.params.autoplay.disableOnInteraction) {
+                    pausedByTouch = false;
+                    isTouched = false;
+                    return;
                 }
+                if (pausedByTouch && swiper.params.cssMode) resume();
+                pausedByTouch = false;
+                isTouched = false;
             }));
-            const enable = () => {
-                swiper.el.classList.remove(...swiper.params.navigation.navigationDisabledClass.split(" "));
-                init();
-                update();
-            };
-            const disable = () => {
-                swiper.el.classList.add(...swiper.params.navigation.navigationDisabledClass.split(" "));
-                destroy();
-            };
-            Object.assign(swiper.navigation, {
-                enable,
-                disable,
-                update,
-                init,
-                destroy
+            on("slideChange", (() => {
+                if (swiper.destroyed || !swiper.autoplay.running) return;
+                slideChanged = true;
+            }));
+            Object.assign(swiper.autoplay, {
+                start,
+                stop,
+                pause,
+                resume
             });
         }
         function freeMode(_ref) {
@@ -4003,7 +4089,7 @@
         }
         function initSliders() {
             if (document.querySelector(".slider-main")) new Swiper(".slider-main", {
-                modules: [ Navigation, freeMode ],
+                modules: [ freeMode ],
                 observer: true,
                 observeParents: true,
                 slidesPerView: "auto",
@@ -4014,10 +4100,6 @@
                     momentumBounce: false
                 },
                 nested: true,
-                navigation: {
-                    prevEl: ".slider-main .swiper-button-prev",
-                    nextEl: ".slider-main .swiper-button-next"
-                },
                 breakpoints: {
                     300: {
                         spaceBetween: 16
@@ -4035,6 +4117,46 @@
         window.addEventListener("load", (function(e) {
             initSliders();
         }));
+        let mySwipers = {};
+        function initSlider(selector, options) {
+            if (!mySwipers[selector]) mySwipers[selector] = new Swiper(selector, options);
+        }
+        const touchScreenChecker = function() {
+            if (isMobile.any()) enableSwipers(); else for (const selector in mySwipers) if (mySwipers[selector] !== void 0) {
+                mySwipers[selector].destroy(true, true);
+                mySwipers[selector] = void 0;
+            }
+        };
+        const enableSwipers = function() {
+            if (document.querySelector(".slider-insights")) initSlider(".slider-insights", {
+                modules: [ Autoplay, freeMode ],
+                observer: true,
+                observeParents: true,
+                slidesPerView: "auto",
+                speed: 2500,
+                autoplay: {
+                    delay: 350,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true
+                },
+                freeMode: {
+                    enabled: true,
+                    momentumBounce: false
+                },
+                nested: true,
+                loop: true,
+                breakpoints: {
+                    300: {
+                        spaceBetween: 24
+                    },
+                    1500: {
+                        spaceBetween: 40
+                    }
+                },
+                on: {}
+            });
+        };
+        touchScreenChecker();
         class ScrollWatcher {
             constructor(props) {
                 let defaultConfig = {
@@ -4491,27 +4613,26 @@
         if (document.querySelector("[data-fp]")) modules_flsModules.fullpage = new FullPage(document.querySelector("[data-fp]"), "");
         let addWindowScrollEvent = false;
         function headerScroll() {
-            addWindowScrollEvent = true;
+            let addWindowScrollEvent = true;
             const header = document.querySelector("header.header");
             const headerShow = header.hasAttribute("data-scroll-show");
-            const headerShowTimer = header.dataset.scrollShow ? header.dataset.scrollShow : 500;
+            header.dataset.scrollShow && header.dataset.scrollShow;
             const startPoint = header.dataset.scroll ? header.dataset.scroll : 1;
             let scrollDirection = 0;
             let timer;
-            document.addEventListener("windowScroll", (function(e) {
-                const scrollTop = window.scrollY;
+            const sectionTwo = document.querySelector(".section-02");
+            sectionTwo.addEventListener("scroll", (function(e) {
+                if (!addWindowScrollEvent) return;
+                const scrollTop = sectionTwo.scrollTop;
                 clearTimeout(timer);
                 if (scrollTop >= startPoint) {
-                    !header.classList.contains("_header-scroll") ? header.classList.add("_header-scroll") : null;
-                    if (headerShow) {
-                        if (scrollTop > scrollDirection) header.classList.contains("_header-show") ? header.classList.remove("_header-show") : null; else !header.classList.contains("_header-show") ? header.classList.add("_header-show") : null;
-                        timer = setTimeout((() => {
-                            !header.classList.contains("_header-show") ? header.classList.add("_header-show") : null;
-                        }), headerShowTimer);
-                    }
+                    if (!header.classList.contains("_header-scroll")) header.classList.add("_header-scroll");
+                    if (headerShow) if (scrollTop > scrollDirection) {
+                        if (header.classList.contains("_header-show")) header.classList.remove("_header-show");
+                    } else if (!header.classList.contains("_header-show")) header.classList.add("_header-show");
                 } else {
-                    header.classList.contains("_header-scroll") ? header.classList.remove("_header-scroll") : null;
-                    if (headerShow) header.classList.contains("_header-show") ? header.classList.remove("_header-show") : null;
+                    if (header.classList.contains("_header-scroll")) header.classList.remove("_header-scroll");
+                    if (headerShow) if (header.classList.contains("_header-show")) header.classList.remove("_header-show");
                 }
                 scrollDirection = scrollTop <= 0 ? 0 : scrollTop;
             }));
@@ -4608,26 +4729,46 @@
         }
         const da = new DynamicAdapt("max");
         da.init();
+        var video = document.getElementById("heroVideo");
+        var deferredSource = document.getElementById("deferredSource");
+        var videoLoaded = localStorage.getItem("videoLoaded");
+        if (videoLoaded) deferredSource.src = deferredSource.dataset.src; else {
+            deferredSource.onload = function() {
+                video.appendChild(deferredSource.cloneNode(true));
+                localStorage.setItem("videoLoaded", true);
+            };
+            deferredSource.src = deferredSource.dataset.src;
+        }
         document.addEventListener("DOMContentLoaded", (function() {
-            var video = document.getElementById("heroVideo");
-            var deferredSource = document.getElementById("deferredSource");
-            var videoLoaded = localStorage.getItem("videoLoaded");
-            if (videoLoaded) deferredSource.src = deferredSource.dataset.src; else {
-                deferredSource.onload = function() {
-                    video.appendChild(deferredSource.cloneNode(true));
-                    localStorage.setItem("videoLoaded", true);
+            const header = document.querySelector("header");
+            const heroBg = document.querySelector(".hero__bg");
+            const heroBody = document.querySelector(".hero__body");
+            const heroControlButton = document.querySelector(".hero__control");
+            if (heroBg) {
+                const addHoverClass = () => {
+                    if (window.innerWidth > 30.06125 * parseFloat(getComputedStyle(document.documentElement).fontSize)) heroBg.classList.add("hover");
                 };
-                deferredSource.src = deferredSource.dataset.src;
+                const removeHoverClass = () => {
+                    if (window.innerWidth > 30.06125 * parseFloat(getComputedStyle(document.documentElement).fontSize)) heroBg.classList.remove("hover");
+                };
+                header.addEventListener("mouseover", addHoverClass);
+                heroBody.addEventListener("mouseover", addHoverClass);
+                heroControlButton.addEventListener("mouseover", addHoverClass);
+                header.addEventListener("mouseout", removeHoverClass);
+                heroBody.addEventListener("mouseout", removeHoverClass);
+                heroControlButton.addEventListener("mouseout", removeHoverClass);
             }
-            video = document.getElementById("heroVideo");
+            var video = document.getElementById("heroVideo");
             var playPauseButton = document.querySelector(".hero__control");
             if (playPauseButton) playPauseButton.addEventListener("click", (function() {
                 if (video.paused) {
                     video.play();
                     playPauseButton.classList.remove("paused");
+                    video.classList.remove("paused");
                 } else {
                     video.pause();
                     playPauseButton.classList.add("paused");
+                    video.classList.add("paused");
                 }
             }));
             var btnMaskElements = document.querySelectorAll(".btn-mask");
@@ -4686,24 +4827,6 @@
                         typedElement.setAttribute("data-typed-started", "false");
                     }
                 }));
-            }
-            const header = document.querySelector("header");
-            const heroBg = document.querySelector(".hero__bg");
-            const heroBody = document.querySelector(".hero__body");
-            const heroControlButton = document.querySelector(".hero__control");
-            if (heroBg) {
-                const addHoverClass = () => {
-                    if (window.innerWidth > 30.06125 * parseFloat(getComputedStyle(document.documentElement).fontSize)) heroBg.classList.add("hover");
-                };
-                const removeHoverClass = () => {
-                    if (window.innerWidth > 30.06125 * parseFloat(getComputedStyle(document.documentElement).fontSize)) heroBg.classList.remove("hover");
-                };
-                header.addEventListener("mouseover", addHoverClass);
-                heroBody.addEventListener("mouseover", addHoverClass);
-                heroControlButton.addEventListener("mouseover", addHoverClass);
-                header.addEventListener("mouseout", removeHoverClass);
-                heroBody.addEventListener("mouseout", removeHoverClass);
-                heroControlButton.addEventListener("mouseout", removeHoverClass);
             }
             function setupGroupAnimation(groupSelector, circleId, hoverRadius) {
                 const group = document.querySelector(groupSelector);
@@ -4770,31 +4893,46 @@
                 watcherClassAdded = true;
                 startIntervalForWatcher();
             }
-            const fileInput = document.getElementById("file-upload");
-            const fileNameSpan = document.querySelector(".file-upload__file-name");
-            const fileErrorSpan = document.createElement("span");
-            if (fileInput) {
-                fileErrorSpan.classList.add("file-error");
-                document.querySelector(".file-upload").appendChild(fileErrorSpan);
-                fileInput.addEventListener("change", (function() {
-                    if (this.files && this.files.length > 0) {
-                        const fileSizeInMB = this.files[0].size / (1024 * 1024);
-                        if (fileSizeInMB > 10) {
-                            const errorMessage = this.getAttribute("data-fe");
-                            fileInput.classList.add("error");
-                            fileErrorSpan.textContent = errorMessage;
-                            fileNameSpan.textContent = "";
-                        } else {
-                            fileInput.classList.remove("error");
-                            fileErrorSpan.textContent = "";
-                            fileNameSpan.textContent = this.files[0].name;
+            const fileInputBody = document.querySelector(".file-upload");
+            const fileInput = document.getElementById("file-upload-input");
+            let fileErrorSpan = null;
+            let previousFile = null;
+            if (fileInput) fileInput.addEventListener("change", (function(event) {
+                if (this.files && this.files.length > 0) {
+                    const fileSizeInMB = this.files[0].size / (1024 * 1024);
+                    if (fileSizeInMB > 10) {
+                        const errorMessage = this.getAttribute("data-fe");
+                        fileInput.classList.add("error");
+                        if (!fileErrorSpan) {
+                            fileErrorSpan = document.createElement("span");
+                            fileErrorSpan.classList.add("file-error");
+                            fileInputBody.appendChild(fileErrorSpan);
                         }
+                        fileErrorSpan.textContent = errorMessage;
+                        fileErrorSpan.style.display = "block";
+                        setTimeout((() => {
+                            fileInputBody.removeChild(fileErrorSpan);
+                            fileErrorSpan = null;
+                        }), 3e3);
+                        event.preventDefault();
                     } else {
-                        fileErrorSpan.textContent = "";
-                        fileNameSpan.textContent = "";
+                        fileInput.classList.remove("error");
+                        if (fileErrorSpan) {
+                            fileInputBody.removeChild(fileErrorSpan);
+                            fileErrorSpan = null;
+                        }
+                        if (!fileInputBody.classList.contains("_upload")) fileInputBody.classList.add("_upload");
+                        previousFile = this.files[0];
                     }
-                }));
-            }
+                } else {
+                    fileInput.classList.remove("error");
+                    if (fileErrorSpan) {
+                        fileInputBody.removeChild(fileErrorSpan);
+                        fileErrorSpan = null;
+                    }
+                    fileInputBody.classList.remove("_upload");
+                }
+            }));
             const inputElements = document.querySelectorAll(".input");
             if (inputElements) inputElements.forEach((input => {
                 input.addEventListener("input", (function() {
@@ -4857,26 +4995,30 @@
         tikers.forEach((tiker => {
             const originalLine = tiker.querySelector(".tiker__line");
             if (originalLine) {
-                if (tiker.classList.contains("tiker-01")) originalLine.style.animation = "scroll 40s linear infinite"; else if (tiker.classList.contains("tiker-insights")) originalLine.style.animation = "scroll 30s linear infinite";
+                if (tiker.classList.contains("tiker-01")) originalLine.style.animation = "scroll 40s linear infinite";
                 const clonedLine = originalLine.cloneNode(true);
                 clonedLine.classList.add("clone-line");
                 tiker.appendChild(clonedLine);
-                document.addEventListener("DOMContentLoaded", (function() {
-                    if (tiker.classList.contains("tiker-hover") && !document.documentElement.classList.contains("touch")) {
-                        tiker.addEventListener("mouseover", (() => {
-                            const cloneLines = tiker.querySelectorAll(".tiker__line");
-                            cloneLines.forEach((cloneLine => {
-                                cloneLine.style.animationPlayState = "paused";
-                            }));
-                        }));
-                        tiker.addEventListener("mouseout", (() => {
-                            const cloneLines = tiker.querySelectorAll(".tiker__line");
-                            cloneLines.forEach((cloneLine => {
-                                cloneLine.style.animationPlayState = "running";
-                            }));
-                        }));
-                    }
-                }));
+            }
+        }));
+        window.addEventListener("load", (function(e) {
+            if (!isMobile.any()) {
+                const tikerInsights = document.querySelector(".slider-insights");
+                const tikerLine = document.querySelector(".slider-insights__wrapper");
+                const clonedLine = tikerLine.cloneNode(true);
+                tikerInsights.appendChild(clonedLine);
+                tikerLine.style.animation = "scroll 40s linear infinite";
+                clonedLine.style.animation = "scroll 40s linear infinite";
+                function playStatePaused() {
+                    tikerLine.style.animationPlayState = "paused";
+                    clonedLine.style.animationPlayState = "paused";
+                }
+                function playStateRunning() {
+                    tikerLine.style.animationPlayState = "running";
+                    clonedLine.style.animationPlayState = "running";
+                }
+                tikerInsights.addEventListener("mouseover", playStatePaused);
+                tikerInsights.addEventListener("mouseout", playStateRunning);
             }
         }));
         window["FLS"] = false;
