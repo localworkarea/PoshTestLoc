@@ -4115,48 +4115,42 @@
             });
         }
         window.addEventListener("load", (function(e) {
+            let mySwipers = {};
+            function initSlider(selector, options) {
+                if (!mySwipers[selector]) mySwipers[selector] = new Swiper(selector, options);
+            }
+            const touchScreenChecker = function() {
+                if (isMobile.any()) enableSwipers(); else for (const selector in mySwipers) if (mySwipers[selector] !== void 0) {
+                    mySwipers[selector].destroy(true, true);
+                    mySwipers[selector] = void 0;
+                }
+            };
+            const enableSwipers = function() {
+                if (document.querySelector(".slider-insights")) initSlider(".slider-insights", {
+                    modules: [ Autoplay, freeMode ],
+                    observer: true,
+                    observeParents: true,
+                    slidesPerView: "auto",
+                    speed: 1500,
+                    autoplay: {
+                        delay: 500
+                    },
+                    nested: true,
+                    loop: true,
+                    breakpoints: {
+                        300: {
+                            spaceBetween: 24
+                        },
+                        1500: {
+                            spaceBetween: 40
+                        }
+                    },
+                    on: {}
+                });
+            };
+            touchScreenChecker();
             initSliders();
         }));
-        let mySwipers = {};
-        function initSlider(selector, options) {
-            if (!mySwipers[selector]) mySwipers[selector] = new Swiper(selector, options);
-        }
-        const touchScreenChecker = function() {
-            if (isMobile.any()) enableSwipers(); else for (const selector in mySwipers) if (mySwipers[selector] !== void 0) {
-                mySwipers[selector].destroy(true, true);
-                mySwipers[selector] = void 0;
-            }
-        };
-        const enableSwipers = function() {
-            if (document.querySelector(".slider-insights")) initSlider(".slider-insights", {
-                modules: [ Autoplay, freeMode ],
-                observer: true,
-                observeParents: true,
-                slidesPerView: "auto",
-                speed: 2500,
-                autoplay: {
-                    delay: 350,
-                    disableOnInteraction: false,
-                    pauseOnMouseEnter: true
-                },
-                freeMode: {
-                    enabled: true,
-                    momentumBounce: false
-                },
-                nested: true,
-                loop: true,
-                breakpoints: {
-                    300: {
-                        spaceBetween: 24
-                    },
-                    1500: {
-                        spaceBetween: 40
-                    }
-                },
-                on: {}
-            });
-        };
-        touchScreenChecker();
         class ScrollWatcher {
             constructor(props) {
                 let defaultConfig = {
