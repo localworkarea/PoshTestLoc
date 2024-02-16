@@ -4739,6 +4739,7 @@
         document.addEventListener("DOMContentLoaded", (function() {
             const splitTextLines = document.querySelectorAll(".split-lines");
             const splitTextWords = document.querySelectorAll(".split-words");
+            const splitTextBoth = document.querySelectorAll(".split-both");
             if (splitTextLines.length > 0) splitTextLines.forEach((element => {
                 const splitText = new SplitType(element, {
                     types: "lines"
@@ -4755,6 +4756,39 @@
                     splitText.split();
                 }));
             }));
+            if (splitTextBoth.length > 0) splitTextBoth.forEach((element => {
+                const splitText = new SplitType(element, {
+                    types: "lines, words"
+                });
+                window.addEventListener("resize", (function() {
+                    splitText.split();
+                }));
+            }));
+            function updateIndexes() {
+                const splitBoth = document.querySelectorAll(".split-both");
+                splitBoth.forEach((splitElement => {
+                    const words = splitElement.querySelectorAll(".word");
+                    words.forEach(((word, index) => {
+                        word.style.setProperty("--index", index);
+                    }));
+                }));
+            }
+            updateIndexes();
+            window.addEventListener("resize", (function() {
+                updateIndexes();
+            }));
+            const leftItems = document.querySelectorAll(".items-serv-left__item");
+            const rightItems = document.querySelectorAll(".items-serv-right__item");
+            const lastIndex = leftItems.length > 0 ? leftItems.length - 1 : 0;
+            const startIndex = lastIndex + 1;
+            if (leftItems && rightItems) {
+                leftItems.forEach(((item, index) => {
+                    item.style.setProperty("--index", index);
+                }));
+                rightItems.forEach(((item, index) => {
+                    item.style.setProperty("--index", startIndex + index);
+                }));
+            }
             const header = document.querySelector("header");
             const heroBg = document.querySelector(".hero__bg");
             const heroBody = document.querySelector(".hero__body");
@@ -4794,7 +4828,7 @@
             }));
             var typedElement = document.getElementById("typed");
             var typed;
-            var startDelay = 0;
+            var startDelay = 1200;
             if (typedElement) {
                 typed = new Typed("#typed", {
                     stringsElement: "#typed-strings",

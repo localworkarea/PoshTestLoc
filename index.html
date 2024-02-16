@@ -6,7 +6,7 @@
 	<meta charset="UTF-8">
 	<meta name="format-detection" content="telephone=no">
 	<!-- <style>body{opacity: 0;}</style> -->
-	<link rel="stylesheet" href="css/style.min.css?_v=20240216154454">
+	<link rel="stylesheet" href="css/style.min.css?_v=20240216224921">
 	<link rel="shortcut icon" href="favicon.ico">
 	<!-- <meta name="robots" content="noindex, nofollow"> -->
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -133,8 +133,8 @@
 						</div>
 						<div class="hero__container">
 							<div class="hero__body">
-								<h1 data-da=".hero__bg,480.98,0" class="hero__title title-main split-lines">
-									<span>дизайн</span> <span>паковання</span> <span>для</span> <span>fmcg брендів</span>
+								<h1 data-da=".hero__bg,480.98,0" class="hero__title title-main split-both">
+									дизайн паковання для fmcg брендів
 								</h1>
 								<div class="hero__btm">
 									<p class="hero__txt txt-main">
@@ -289,7 +289,7 @@
 						</ul>
 					</div>
 					<div class="cases-main">
-						<div class="cases-main__case case-card case-card_big">
+						<article class="cases-main__case case-card case-card_big">
 							<a href="#" class="case-card__link" aria-label="посилання на кейс">
 								<picture>
 									<source media="(max-width: 30.06125em)" srcset="img/cases/nut-one-mob.webp" type="image/webp">
@@ -301,18 +301,18 @@
 							</a>
 							<div class="case-card__container">
 								<div class="case-card__footer">
-									<a href="#" class="case-card__title-link" aria-label="посилання на кейс">
-										<h3 class="case-card__title title-card">
-											<span>Roshen</span>
+									<a data-watch href="#" class="case-card__title-link" aria-label="посилання на кейс">
+										<h3 class="case-card__title title-card split-both">
+											Roshen
 											<img src="img/icon/arr-btn.svg" alt="стрілочка направлена вліво">
-											<span>nut out</span>
+											nut out
 										</h3>
 									</a>
 								</div>
 							</div>
-						</div>
+						</article>
 						<div class="cases-main__container">
-							<div class="case-main__slider slider-main swiper">
+							<div data-watch data-watch-threshold="0.5" class="case-main__slider slider-main swiper">
 								<div class="slider-main__wrapper swiper-wrapper">
 									<div class="slider-main__slide swiper-slide">
 										<article class="slider-main__case-card case-card case-card_av">
@@ -327,10 +327,10 @@
 											</a>
 											<div class="case-card__footer">
 												<a href="#" class="case-card__title-link" aria-label="посилання на кейс">
-													<h3 class="case-card__title title-card">
-														<span>kolonist</span>
+													<h3 class="case-card__title title-card split-both">
+														kolonist
 														<img src="img/icon/arr-btn.svg" alt="стрілочка направлена вліво">
-														<span>fresh roasted coffee</span>
+														fresh roasted coffee
 													</h3>
 												</a>
 											</div>
@@ -349,10 +349,10 @@
 											</a>
 											<div class="case-card__footer">
 												<a href="#" class="case-card__title-link" aria-label="посилання на кейс">
-													<h3 class="case-card__title title-card">
-														<span>Varus</span>
+													<h3 class="case-card__title title-card split-both">
+														Varus
 														<img src="img/icon/arr-btn.svg" alt="стрілочка направлена вліво">
-														<span>power up</span>
+														power up
 													</h3>
 												</a>
 											</div>
@@ -371,10 +371,10 @@
 											</a>
 											<div class="case-card__footer">
 												<a href="#" class="case-card__title-link" aria-label="посилання на кейс">
-													<h3 class="case-card__title title-card">
-														<span>kolonist</span>
+													<h3 class="case-card__title title-card split-both">
+														kolonist
 														<img src="img/icon/arr-btn.svg" alt="стрілочка направлена вліво">
-														<span>fresh roasted coffee</span>
+														fresh roasted coffee
 													</h3>
 												</a>
 											</div>
@@ -393,10 +393,10 @@
 											</a>
 											<div class="case-card__footer">
 												<a href="#" class="case-card__title-link" aria-label="посилання на кейс">
-													<h3 class="case-card__title title-card">
-														<span>Varus</span>
+													<h3 class="case-card__title title-card split-both">
+														Varus
 														<img src="img/icon/arr-btn.svg" alt="стрілочка направлена вліво">
-														<span>pover up</span>
+														pover up
 													</h3>
 												</a>
 											</div>
@@ -412,21 +412,23 @@
 									</div>
 								</div>
 							</div>
-							<a href="#" class="cases-main__link btn-mask btn-mask--04" aria-label="кнопка переходу на сторінку послуги">
-								<span class="btn-mask__body">
-									<span class="btn-mask__txt">наші кейси</span>
-									<img class="btn-mask__arr-r" src="img/icon/arr-btn.svg" alt="arrow to right">
-								</span>
-							</a>
+							<div data-watch class="cases-main__link-body">
+								<a href="#" class="cases-main__link btn-mask btn-mask--04" aria-label="кнопка переходу на сторінку послуги">
+									<span class="btn-mask__body">
+										<span class="btn-mask__txt">наші кейси</span>
+										<img class="btn-mask__arr-r" src="img/icon/arr-btn.svg" alt="arrow to right">
+									</span>
+								</a>
+							</div>
 						</div>
 					</div>
 				</section>
 				<section class="services-main">
 					<div class="services-main__container">
-						<h2 class="services-main__title title-main title-main_dark">
+						<h2 data-watch class="services-main__title title-main title-main_dark split-both">
 							послуги<br> та сервІси
 						</h2>
-						<div class="services-main__body">
+						<div data-watch data-watch-threshold="0.3" class="services-main__body">
 							<ul class="services-main__items items-serv-left">
 								<li class="items-serv-left__item">
 									<a href="#" class="items-serv-left__link btn-mask btn-mask--05" aria-label="кнопка переходу на сторінку послуги">
@@ -574,7 +576,7 @@
 								</li>
 							</ul>
 						</div>
-						<div class="services-main__more">
+						<div data-watch class="services-main__more">
 							<a href="#" class="items-serv-left__link btn-mask btn-mask--04" aria-label="кнопка переходу на сторінку послуги">
 								<span class="btn-mask__body">
 									<span class="btn-mask__txt">ДЕТАЛЬНІШЕ</span>
@@ -584,20 +586,20 @@
 						</div>
 					</div>
 				</section>
-				<section class="relationship br-r br-r--white">
+				<section data-watch class="relationship br-r br-r--white">
 					<div class="relationship__container">
 						<div class="relationship__head">
-							<h2 class="relationship__title title-main">
-								<span>ми</span> орієнтовані<br> на довгострокові стосунки
+							<h2 data-watch class="relationship__title title-main split-both">
+								<span class="mob-del">ми</span> орієнтовані на довгострокові стосунки
 							</h2>
-							<div data-da=".relationship__container,900.98,last" class="relationship__btn">
+							<div data-watch data-da=".relationship__container,900.98,last" class="relationship__btn">
 								<a href="#" class="relationship__link btn btn--01" aria-label="кнопка переходу на сторінку Всі клієнти">
 									<span class="btn__txt">ВСІ КЛІЄНТИ</span>
 									<img class="btn__arr-r" src="img/icon/arr-btn.svg" alt="arrow to right">
 								</a>
 							</div>
 						</div>
-						<p class="relationship__txt txt-main">
+						<p data-watch class="relationship__txt txt-main split-both txt-anim">
 							Саме тому ми максимально вмотивоні знаходити ефективні рішення для наших клієнтів. Кожен проєкт має індивідуальний підхід та завжди доводиться до логічного завершення. Ми забезпечуємо підтримку на етапі виробництва та подальше стабільне обслуговування продукту в подальшому на всіх етапах.
 						</p>
 						<ul class="relationship__brands">
@@ -1289,9 +1291,9 @@
 	<!-- <div class="mask">
 			<span></span>
 		</div> -->
-	<script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js?_v=20240216154454"></script>
-	<script src="https://unpkg.com/split-type?_v=20240216154454"></script>
-	<script src="js/app.min.js?_v=20240216154454"></script>
+	<script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js?_v=20240216224921"></script>
+	<script src="https://unpkg.com/split-type?_v=20240216224921"></script>
+	<script src="js/app.min.js?_v=20240216224921"></script>
 </body>
 
 </html>
