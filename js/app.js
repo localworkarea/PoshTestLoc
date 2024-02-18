@@ -4743,6 +4743,27 @@
         }
         const da = new DynamicAdapt("max");
         da.init();
+        var video = document.getElementById("heroVideo");
+        var deferredSource = document.getElementById("deferredSource");
+        function setPosterForMobile() {
+            if (window.innerWidth <= 500) video.setAttribute("poster", "files/video-mob.webp");
+        }
+        setPosterForMobile();
+        function loadVideoWithDelay(delay) {
+            setTimeout((function() {
+                var videoLoaded = localStorage.getItem("videoLoaded");
+                if (videoLoaded) deferredSource.src = deferredSource.dataset.src; else {
+                    deferredSource.onload = function() {
+                        video.appendChild(deferredSource.cloneNode(true));
+                        localStorage.setItem("videoLoaded", true);
+                    };
+                    deferredSource.src = deferredSource.dataset.src;
+                }
+            }), delay);
+        }
+        document.addEventListener("DOMContentLoaded", (function() {
+            loadVideoWithDelay(100);
+        }));
         document.addEventListener("DOMContentLoaded", (function() {
             const splitTextLines = document.querySelectorAll(".split-lines");
             const splitTextWords = document.querySelectorAll(".split-words");
@@ -4800,21 +4821,6 @@
                     item.style.setProperty("--index", startIndex + index);
                 }));
             }
-            var video = document.getElementById("heroVideo");
-            var deferredSource = document.getElementById("deferredSource");
-            function loadVideoWithDelay(delay) {
-                setTimeout((function() {
-                    var videoLoaded = localStorage.getItem("videoLoaded");
-                    if (videoLoaded) deferredSource.src = deferredSource.dataset.src; else {
-                        deferredSource.onload = function() {
-                            video.appendChild(deferredSource.cloneNode(true));
-                            localStorage.setItem("videoLoaded", true);
-                        };
-                        deferredSource.src = deferredSource.dataset.src;
-                    }
-                }), delay);
-            }
-            loadVideoWithDelay(100);
             const header = document.querySelector("header");
             const heroBg = document.querySelector(".hero__bg");
             const heroBody = document.querySelector(".hero__body");
@@ -4833,7 +4839,7 @@
                 heroBody.addEventListener("mouseout", removeHoverClass);
                 heroControlButton.addEventListener("mouseout", removeHoverClass);
             }
-            video = document.getElementById("heroVideo");
+            var video = document.getElementById("heroVideo");
             var playPauseButton = document.querySelector(".hero__control");
             if (playPauseButton) playPauseButton.addEventListener("click", (function() {
                 if (video.paused) {
