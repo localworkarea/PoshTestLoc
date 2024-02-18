@@ -4134,12 +4134,22 @@
                     observer: true,
                     observeParents: true,
                     slidesPerView: "auto",
-                    speed: 1500,
+                    speed: 2500,
+                    centeredSlides: false,
+                    longSwipes: true,
                     autoplay: {
-                        delay: 500
+                        delay: -1,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true
+                    },
+                    freeMode: {
+                        enabled: true,
+                        momentumBounce: false
                     },
                     nested: true,
                     loop: true,
+                    loopAddBlankSlides: true,
+                    loopAdditionalSlides: 5,
                     breakpoints: {
                         300: {
                             spaceBetween: 24
@@ -4148,7 +4158,14 @@
                             spaceBetween: 40
                         }
                     },
-                    on: {}
+                    on: {
+                        touchStart: function() {
+                            this.autoplay.stop();
+                        },
+                        touchEnd: function() {
+                            this.autoplay.start();
+                        }
+                    }
                 });
             };
             touchScreenChecker();
@@ -4779,10 +4796,14 @@
             }));
             const leftItems = document.querySelectorAll(".items-serv-left__item");
             const rightItems = document.querySelectorAll(".items-serv-right__item");
+            const brandsRelationship = document.querySelectorAll(".relationship__brand");
             const lastIndex = leftItems.length > 0 ? leftItems.length - 1 : 0;
             const startIndex = lastIndex + 1;
-            if (leftItems && rightItems) {
+            if (leftItems && rightItems && brandsRelationship) {
                 leftItems.forEach(((item, index) => {
+                    item.style.setProperty("--index", index);
+                }));
+                brandsRelationship.forEach(((item, index) => {
                     item.style.setProperty("--index", index);
                 }));
                 rightItems.forEach(((item, index) => {
@@ -4925,7 +4946,9 @@
                 for (let mutation of mutationsList) if (mutation.type === "attributes" && mutation.attributeName === "class") if (buttonForm.classList.contains("_watcher-view")) {
                     if (!watcherClassAdded) {
                         watcherClassAdded = true;
-                        startIntervalForWatcher();
+                        setTimeout((() => {
+                            startIntervalForWatcher();
+                        }), 1e3);
                     }
                 } else if (watcherClassAdded) {
                     watcherClassAdded = false;
@@ -4938,10 +4961,6 @@
             });
             buttonForm.addEventListener("mouseenter", stopIntervalForWatcher);
             buttonForm.addEventListener("mouseleave", startIntervalForWatcher);
-            if (buttonForm.classList.contains("_watcher-view")) {
-                watcherClassAdded = true;
-                startIntervalForWatcher();
-            }
             const fileInputBody = document.querySelector(".file-upload");
             const fileInput = document.getElementById("file-upload-input");
             let fileErrorSpan = null;
