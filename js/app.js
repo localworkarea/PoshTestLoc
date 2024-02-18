@@ -4746,7 +4746,7 @@
         var video = document.getElementById("heroVideo");
         var deferredSource = document.getElementById("deferredSource");
         function setPosterForMobile() {
-            if (window.innerWidth <= 500) video.setAttribute("poster", "files/video-mob.webp");
+            if (window.innerWidth > 500) video.setAttribute("poster", "files/video.webp");
         }
         setPosterForMobile();
         function loadVideoWithDelay(delay) {
